@@ -1,4 +1,6 @@
-Show help text before prompting for permissions.
+* Show help text before prompting for permissions.
+* Handle coming back from granting permissions.
+* Handle SD cards correctly.
 
 1.0 (1)
 
