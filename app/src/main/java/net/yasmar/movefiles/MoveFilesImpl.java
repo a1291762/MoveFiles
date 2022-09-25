@@ -7,6 +7,7 @@ import android.util.Log;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -31,9 +32,11 @@ public class MoveFilesImpl {
             try {
                 byte[] data = readFile(sourcePath);
                 writeFile(destPath, data);
+                // hopefully the above throw an exception so we don't remove
+                // the original file if we have failed to write the copy!
                 new File(sourcePath).delete();
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (IOException e) {
+                Log.w(TAG, "Failed to move the file?!", e);
             }
         });
     }
@@ -48,37 +51,28 @@ public class MoveFilesImpl {
         Log.i(TAG, "files for folder "+path);
         File file = new File(path);
         Log.i(TAG, "files for folder "+file);
+        if (file == null) {
+            Log.w(TAG, "failed to create File from path?!");
+            return;
+        }
         for (String p: file.list()) {
             Log.i(TAG, "file "+p);
             callback.run(p);
         }
     }
 
-    byte[] readFile(String path) {
-        try {
-            InputStream is = new FileInputStream(path);
-            byte[] buffer = new byte[is.available()];
-            is.read(buffer);
-            is.close();
-            return buffer;
-        } catch (Exception e) {
-            Log.i(TAG, "Failed to read "+path);
-            e.printStackTrace();
-            assert(false);
-        }
-        return null;
+    byte[] readFile(String path) throws IOException {
+        InputStream is = new FileInputStream(path);
+        byte[] buffer = new byte[is.available()];
+        is.read(buffer);
+        is.close();
+        return buffer;
     }
 
-    void writeFile(String path, byte[] data) {
-        try {
-            OutputStream os = new FileOutputStream(path);
-            os.write(data);
-            os.close();
-        } catch (Exception e) {
-            Log.i(TAG, "Failed to write "+path);
-            e.printStackTrace();
-            assert(false);
-        }
+    void writeFile(String path, byte[] data) throws IOException {
+        OutputStream os = new FileOutputStream(path);
+        os.write(data);
+        os.close();
     }
 
 }
