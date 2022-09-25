@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">Move Files</string>
+    <string name="grant_help">This app needs some privileges to work. Click the button to grant them. You will need to select the app from the list and enable access to manage all files.</string>
+    <string name="grant">Grant Privileges</string>
     <string name="source_help">Select a source folder to move files from.</string>
     <string name="source">Source</string>
     <string name="dest_help">Select a destination folder to move files to.</string>

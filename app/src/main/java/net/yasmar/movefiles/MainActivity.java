@@ -30,6 +30,7 @@ public class MainActivity extends Activity {
 
     private static final int SOURCE_CODE = 1;
     private static final int DESTINATION_CODE = 2;
+    private static final int GRANT_CODE = 3;
 
     Button source;
     Button destination;
@@ -46,30 +47,36 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
         context = this;
         contentResolver = context.getContentResolver();
         workManager = WorkManager.getInstance(context);
         impl = new MoveFilesImpl(context);
 
+        boolean isManager = Environment.isExternalStorageManager();
+        if (isManager) {
+            setContentView(R.layout.activity_main);
+        } else {
+            setContentView(R.layout.activity_grant);
+            Button grant = findViewById(R.id.grant);
+            grant.setOnClickListener((view) -> {
+                Intent intent = new Intent();
+                intent.setAction(ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                startActivityForResult(intent, GRANT_CODE);
+            });
+            return;
+        }
+
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         mEnabled = sharedPrefs.getBoolean("enabled", false);
         String sourceFolder = sharedPrefs.getString("sourceFolder", null);
         String destFolder = sharedPrefs.getString("destFolder", null);
 
-        boolean isManager = Environment.isExternalStorageManager();
         boolean workScheduled = isWorkScheduled("moveFiles");
-        if (mEnabled && (!isManager || !workScheduled)) {
+        if (mEnabled && !workScheduled) {
             // we have become disabled :(
             Log.w(TAG, "we have become disabled because the manager permission was lost ("+isManager+") or the job got disabled ("+workScheduled+")");
             toggleEnabled();
-        }
-        if (!isManager) {
-            // This app needs to be an external storage manager to work properly
-            Intent intent = new Intent();
-            intent.setAction(ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-            startActivityForResult(intent, 0);
         }
 
         source = findViewById(R.id.source);
@@ -108,6 +115,11 @@ public class MainActivity extends Activity {
     @Override
     public void onResume() {
         super.onResume();
+
+        boolean isManager = Environment.isExternalStorageManager();
+        if (isManager) {
+            setContentView(R.layout.activity_main);
+        }
     }
 
     @Override
