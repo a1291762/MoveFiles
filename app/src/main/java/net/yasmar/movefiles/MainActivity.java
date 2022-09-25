@@ -153,8 +153,14 @@ public class MainActivity extends Activity {
         }
         Uri folderUri = data.getData();
         Log.i(TAG, "folder "+folderUri);
-        String path = folderUri.getLastPathSegment().replace(':', '/')
-                .replace("primary/", Environment.getExternalStorageDirectory().getAbsolutePath()+"/");
+        String path = folderUri.getLastPathSegment().replace(':', '/');
+        if (path.startsWith("primary/")) {
+            // primary/foo becomes /sdcard/foo
+            path = path.replace("primary/", Environment.getExternalStorageDirectory().getAbsolutePath() + "/");
+        } else {
+            // bar becomes /storage/bar
+            path = "/storage/" + path;
+        }
         Log.i(TAG, "path "+path);
         String property = requestCode == SOURCE_CODE ? "sourceFolder" : "destFolder";
         SharedPreferences.Editor editor = sharedPrefs.edit();
