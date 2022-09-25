@@ -34,17 +34,22 @@ public class MoveFilesWorker
         if (!Environment.isExternalStorageManager()) {
             return Result.failure();
         }
+
+        // work is run even when the phone is rebooted or the app is upgraded
+        // if a service was supposed to be running, restart it now
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         boolean useService = sharedPrefs.getBoolean("service", false);
         if (useService) {
             Intent intent = new Intent(context, MainService.class);
             intent.setAction("start");
             context.startForegroundService(intent);
-        } else {
-            String sourceFolder = sharedPrefs.getString("sourceFolder", null);
-            String destFolder = sharedPrefs.getString("destFolder", null);
-            impl.moveFiles(sourceFolder, destFolder);
         }
+
+        // the service only watches for changes, so we still need to actually move files now
+        String sourceFolder = sharedPrefs.getString("sourceFolder", null);
+        String destFolder = sharedPrefs.getString("destFolder", null);
+        impl.moveFiles(sourceFolder, destFolder);
+
         return Result.success();
     }
 
