@@ -117,8 +117,10 @@ public class MainActivity extends Activity {
         super.onResume();
 
         boolean isManager = Environment.isExternalStorageManager();
-        if (isManager) {
-            setContentView(R.layout.activity_main);
+        if (isManager && sharedPrefs == null) {
+            Intent intent = new Intent(context, MainActivity.class);
+            startActivity(intent);
+            finish();
         }
     }
 
