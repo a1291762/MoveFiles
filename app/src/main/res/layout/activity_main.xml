@@ -43,4 +43,17 @@
         android:layout_height="wrap_content"
         android:text="@string/enable" />
 
+    <TextView
+        android:id="@+id/tv4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/service_help"
+        android:labelFor="@+id/service"  />
+
+    <Button
+        android:id="@+id/service"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/service_enable" />
+
 </LinearLayout>

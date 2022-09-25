@@ -35,6 +35,7 @@ public class MainActivity extends Activity {
     Button source;
     Button destination;
     Button enable;
+    Button service;
 
     private SharedPreferences sharedPrefs;
     private boolean mEnabled;
@@ -71,6 +72,7 @@ public class MainActivity extends Activity {
         mEnabled = sharedPrefs.getBoolean("enabled", false);
         String sourceFolder = sharedPrefs.getString("sourceFolder", null);
         String destFolder = sharedPrefs.getString("destFolder", null);
+        boolean useService = sharedPrefs.getBoolean("service", false);
 
         boolean workScheduled = isWorkScheduled("moveFiles");
         if (mEnabled && !workScheduled) {
@@ -94,6 +96,10 @@ public class MainActivity extends Activity {
         enable = findViewById(R.id.enable);
         enable.setText(mEnabled ? R.string.disable : R.string.enable);
         enable.setOnClickListener((view) -> toggleEnabled());
+
+        service = findViewById(R.id.service);
+        service.setText(useService ? R.string.service_disable : R.string.service_enable);
+        service.setOnClickListener((view) -> launchService());
     }
 
     boolean isWorkScheduled(String tag) {
@@ -208,4 +214,21 @@ public class MainActivity extends Activity {
         workManager.cancelAllWork();
     }
 
+    void launchService() {
+        boolean useService = sharedPrefs.getBoolean("service", false);
+        useService = !useService;
+        Log.i(TAG, "Launching the foreground service "+useService);
+        Intent intent = new Intent(context, MainService.class);
+        if (useService) {
+            intent.setAction("start");
+            context.startForegroundService(intent);
+        } else {
+            intent.setAction("stop");
+            context.startService(intent);
+        }
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+        editor.putBoolean("service", useService);
+        editor.apply();
+        service.setText(useService ? R.string.service_disable : R.string.service_enable);
+    }
 }

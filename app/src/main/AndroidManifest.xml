@@ -18,6 +18,10 @@
             </intent-filter>
         </activity>
 
+        <service android:name=".MainService"
+            android:exported="true">
+        </service>
+
     </application>
 
 </manifest>

@@ -1,6 +1,7 @@
 package net.yasmar.movefiles;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -30,8 +31,16 @@ public class MoveFilesWorker
     @Override
     public Result doWork() {
         Log.i(TAG, "Moving files...");
-        if (Environment.isExternalStorageManager()) {
-            SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        if (!Environment.isExternalStorageManager()) {
+            return Result.failure();
+        }
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        boolean useService = sharedPrefs.getBoolean("service", false);
+        if (useService) {
+            Intent intent = new Intent(context, MainService.class);
+            intent.setAction("start");
+            context.startForegroundService(intent);
+        } else {
             String sourceFolder = sharedPrefs.getString("sourceFolder", null);
             String destFolder = sharedPrefs.getString("destFolder", null);
             impl.moveFiles(sourceFolder, destFolder);
