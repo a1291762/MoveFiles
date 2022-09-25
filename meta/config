@@ -1,0 +1,5 @@
+package=net.yasmar.movefiles
+activity=MainActivity
+package_name=movefiles
+apkdir=app/build/outputs/apk
+apkname=app

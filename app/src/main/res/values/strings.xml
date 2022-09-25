@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Move Files</string>
+    <string name="source_help">Select a source folder to move files from.</string>
+    <string name="source">Source</string>
+    <string name="dest_help">Select a destination folder to move files to.</string>
+    <string name="dest">Destination</string>
+    <string name="enable_help">When started, a background job will run approximately every 15 minutes that moves files from the source folder to the destination folder.</string>
+    <string name="enable">Start</string>
+    <string name="disable">Stop</string>
+</resources>

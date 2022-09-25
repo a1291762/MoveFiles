@@ -1,0 +1,33 @@
+apply plugin: 'com.android.application'
+
+Properties versionProps = new Properties()
+def versionPropsFile = file('../version.properties')
+if(versionPropsFile.exists())
+    versionProps.load(new FileInputStream(versionPropsFile))
+def code = (versionProps['VERSION_CODE'] ?: "1").toInteger()
+
+android {
+    compileSdkVersion 31
+    defaultConfig {
+        applicationId "net.yasmar.movefiles"
+        minSdkVersion 30
+        targetSdkVersion 31
+        versionCode code
+        versionName "1.0 ("+code+")"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+dependencies {
+    implementation "androidx.work:work-runtime:2.7.1"
+}
