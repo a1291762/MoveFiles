@@ -42,7 +42,7 @@ public class MoveFilesWorker
         if (useService) {
             Intent intent = new Intent(context, MainService.class);
             intent.setAction("start");
-            context.startForegroundService(intent);
+            context.startService(intent);
         }
 
         // the service only watches for changes, so we still need to actually move files now

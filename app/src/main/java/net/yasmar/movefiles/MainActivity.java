@@ -221,11 +221,10 @@ public class MainActivity extends Activity {
         Intent intent = new Intent(context, MainService.class);
         if (useService) {
             intent.setAction("start");
-            context.startForegroundService(intent);
         } else {
             intent.setAction("stop");
-            context.startService(intent);
         }
+        context.startService(intent);
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putBoolean("service", useService);
         editor.apply();
