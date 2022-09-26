@@ -24,13 +24,16 @@ public class MoveFilesWorker
             @NonNull WorkerParameters workerParameters) {
         super(context, workerParameters);
         this.context = context;
+
+        Log.i(TAG, "MoveFilesWorker is getting created");
+
         impl = new MoveFilesImpl(context);
     }
 
     @NonNull
     @Override
     public Result doWork() {
-        Log.i(TAG, "Moving files...");
+        Log.i(TAG, "MoveFilesWorker was told to do work...");
         if (!Environment.isExternalStorageManager()) {
             return Result.failure();
         }

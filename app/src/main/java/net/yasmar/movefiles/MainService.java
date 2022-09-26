@@ -51,6 +51,7 @@ public class MainService
 
     @Override
     public void onDestroy() {
+        Log.i(TAG, "service is being destroyed");
         if (fileObserver != null) {
             fileObserver.stopWatching();
         }
@@ -93,7 +94,7 @@ public class MainService
     Notification buildNotification() {
         Notification.Builder b = new Notification.Builder(context, PERSISTENT_CHANNEL);
         b.setSmallIcon(R.drawable.ic_launcher_foreground);
-        b.setContentTitle("Persistent backround service");
+        b.setContentTitle("Persistent background service");
         b.setContentText("This notification is required to be created while the service runs. Tap to hide.");
 
         Intent i = new Intent();
@@ -127,7 +128,7 @@ public class MainService
     }
 
     void doSomething(String sourceFolder, String destFolder) {
-        Log.i(TAG, "A file was created! Time to move");
+        Log.i(TAG, "A file was created! Time to move files...");
         impl.moveFiles(sourceFolder, destFolder);
     }
 }

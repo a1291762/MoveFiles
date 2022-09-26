@@ -26,15 +26,21 @@ public class MoveFilesImpl {
     void moveFiles(String sourceFolder, String destFolder) {
         filesForFolder(sourceFolder, (filename) -> {
             String sourcePath = sourceFolder + "/" + filename;
-            Log.i(TAG, "source path "+sourcePath);
             String destPath = destFolder + "/" + filename;
-            Log.i(TAG, "dest path "+destPath);
+            Log.i(TAG, "move from "+sourcePath+" to "+destPath);
             try {
                 byte[] data = readFile(sourcePath);
+                if (data == null) {
+                    Log.w(TAG, "Failed to read source file?!");
+                    return;
+                }
                 writeFile(destPath, data);
-                // hopefully the above throw an exception so we don't remove
+                // hopefully the above throws an exception so we don't remove
                 // the original file if we have failed to write the copy!
-                new File(sourcePath).delete();
+                boolean did = new File(sourcePath).delete();
+                if (!did) {
+                    Log.w(TAG, "Failed to remove source file?!");
+                }
             } catch (IOException e) {
                 Log.w(TAG, "Failed to move the file?!", e);
             }
@@ -48,23 +54,25 @@ public class MoveFilesImpl {
     // Returns the files (documentUri) for a folder.
     // Does not recurse
     void filesForFolder(String path, FilesForFolderCallback callback) {
-        Log.i(TAG, "files for folder "+path);
         File file = new File(path);
-        Log.i(TAG, "files for folder "+file);
-        if (file == null) {
-            Log.w(TAG, "failed to create File from path?!");
-            return;
-        }
-        for (String p: file.list()) {
-            Log.i(TAG, "file "+p);
-            callback.run(p);
+        assert(file.isDirectory());
+        String[] list = file.list();
+        assert(list != null);
+        for (String p: list) {
+            if (new File(path+"/"+p).isFile()) {
+                callback.run(p);
+            }
         }
     }
 
     byte[] readFile(String path) throws IOException {
         InputStream is = new FileInputStream(path);
-        byte[] buffer = new byte[is.available()];
-        is.read(buffer);
+        int available = is.available();
+        byte[] buffer = new byte[available];
+        int got = is.read(buffer);
+        if (got != available) {
+            return null;
+        }
         is.close();
         return buffer;
     }

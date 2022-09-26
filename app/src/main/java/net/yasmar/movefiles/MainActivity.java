@@ -32,6 +32,8 @@ public class MainActivity extends Activity {
     private static final int DESTINATION_CODE = 2;
     private static final int GRANT_CODE = 3;
 
+    boolean showingGrantScreen = false;
+
     Button source;
     Button destination;
     Button enable;
@@ -56,9 +58,12 @@ public class MainActivity extends Activity {
 
         boolean isManager = Environment.isExternalStorageManager();
         if (isManager) {
+            Log.i(TAG, "Showing config screen");
             setContentView(R.layout.activity_main);
         } else {
+            Log.i(TAG, "Showing grant screen");
             setContentView(R.layout.activity_grant);
+            showingGrantScreen = true;
             Button grant = findViewById(R.id.grant);
             grant.setOnClickListener((view) -> {
                 Intent intent = new Intent();
@@ -77,7 +82,7 @@ public class MainActivity extends Activity {
         boolean workScheduled = isWorkScheduled("moveFiles");
         if (mEnabled && !workScheduled) {
             // we have become disabled :(
-            Log.w(TAG, "we have become disabled because the manager permission was lost ("+isManager+") or the job got disabled ("+workScheduled+")");
+            Log.w(TAG, "we have become disabled?!");
             toggleEnabled();
         }
 
@@ -102,6 +107,12 @@ public class MainActivity extends Activity {
         service.setOnClickListener((view) -> launchService());
     }
 
+    @Override
+    protected void onDestroy() {
+        Log.i(TAG, "activity is being destroyed");
+        super.onDestroy();
+    }
+
     boolean isWorkScheduled(String tag) {
         ListenableFuture<List<WorkInfo>> statuses = workManager.getWorkInfosByTag(tag);
         try {
@@ -122,12 +133,18 @@ public class MainActivity extends Activity {
     public void onResume() {
         super.onResume();
 
-        boolean isManager = Environment.isExternalStorageManager();
-        if (isManager && sharedPrefs == null) {
+        boolean shouldBeShowingGrantScreen = !Environment.isExternalStorageManager();
+        if (shouldBeShowingGrantScreen != showingGrantScreen) {
+            // The app has gained or lost the external storage manager permission
+            // so the UI is wrong... Just re-launch the activity to make it right
+            Log.i(TAG, "finishing the current activity so we can start a new one with the correct UI");
             Intent intent = new Intent(context, MainActivity.class);
             startActivity(intent);
             finish();
+            return;
         }
+
+        Log.i(TAG, "resuming the UI");
     }
 
     @Override
@@ -210,7 +227,7 @@ public class MainActivity extends Activity {
     }
 
     void disableService() {
-        Log.i(TAG, "Disable Work");
+        Log.i(TAG, "Stop Work");
         workManager.cancelAllWork();
     }
 
