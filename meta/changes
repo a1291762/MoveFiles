@@ -1,6 +1,7 @@
 * Don't try to copy directories!
 * Beef up checks when moving files.
 * Write out a log that the app can read (and display it in the app).
+* Launching/resuming the activity restarts work/service if they have stopped.
 
 1.5 (5)
 

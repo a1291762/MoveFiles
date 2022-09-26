@@ -48,7 +48,8 @@ public class MainActivity extends Activity {
     TextView logView;
 
     private SharedPreferences sharedPrefs;
-    private boolean mEnabled;
+    private boolean workEnabled;
+    private boolean serviceEnabled;
 
     Context context;
     ContentResolver contentResolver;
@@ -90,17 +91,10 @@ public class MainActivity extends Activity {
         }
 
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        mEnabled = sharedPrefs.getBoolean("enabled", false);
+        workEnabled = sharedPrefs.getBoolean("enabled", false);
         String sourceFolder = sharedPrefs.getString("sourceFolder", null);
         String destFolder = sharedPrefs.getString("destFolder", null);
-        boolean useService = sharedPrefs.getBoolean("service", false);
-
-        boolean workScheduled = isWorkScheduled("moveFiles");
-        if (mEnabled && !workScheduled) {
-            // we have become disabled :(
-            Log.w(TAG, "we have become disabled?!");
-            toggleEnabled();
-        }
+        serviceEnabled = sharedPrefs.getBoolean("service", false);
 
         source = findViewById(R.id.source);
         if (sourceFolder != null) {
@@ -115,12 +109,12 @@ public class MainActivity extends Activity {
         destination.setOnClickListener((view) -> selectDestination());
 
         enable = findViewById(R.id.enable);
-        enable.setText(mEnabled ? R.string.disable : R.string.enable);
-        enable.setOnClickListener((view) -> toggleEnabled());
+        enable.setText(workEnabled ? R.string.disable : R.string.enable);
+        enable.setOnClickListener((view) -> toggleWork());
 
         service = findViewById(R.id.service);
-        service.setText(useService ? R.string.service_disable : R.string.service_enable);
-        service.setOnClickListener((view) -> launchService());
+        service.setText(serviceEnabled ? R.string.service_disable : R.string.service_enable);
+        service.setOnClickListener((view) -> toggleService());
 
         logView = findViewById(R.id.log);
         logView.setMovementMethod(new ScrollingMovementMethod());
@@ -177,6 +171,15 @@ public class MainActivity extends Activity {
             return;
         }
 
+        // In the event that the work or service stops unexpectedly, launching
+        // the app will cause them to restart due to this logic.
+        if (workEnabled) {
+            startWork();
+        }
+        if (serviceEnabled) {
+            startService();
+        }
+
         Log.i(TAG, "resuming the UI");
     }
 
@@ -229,24 +232,25 @@ public class MainActivity extends Activity {
         }
     }
 
-    void toggleEnabled() {
-        if (mEnabled) {
-            disableService();
+    void toggleWork() {
+        if (workEnabled) {
+            stopWork();
         } else {
-            enableService();
+            startWork();
         }
-        mEnabled = !mEnabled;
+        workEnabled = !workEnabled;
         if (enable != null) {
-            enable.setText(mEnabled ? R.string.disable : R.string.enable);
+            enable.setText(workEnabled ? R.string.disable : R.string.enable);
         }
         SharedPreferences.Editor editor = sharedPrefs.edit();
-        editor.putBoolean("enabled", mEnabled);
+        editor.putBoolean("enabled", workEnabled);
         editor.apply();
     }
 
-    void enableService() {
+    void startWork() {
         Log.i(TAG, "Start Work");
 
+        workManager.cancelAllWork();
         PeriodicWorkRequest r = new PeriodicWorkRequest.Builder(
                 MoveFilesWorker.class,
                 15,
@@ -259,26 +263,36 @@ public class MainActivity extends Activity {
                 r);
     }
 
-    void disableService() {
+    void stopWork() {
         Log.i(TAG, "Stop Work");
         workManager.cancelAllWork();
     }
 
-    void launchService() {
-        boolean useService = sharedPrefs.getBoolean("service", false);
-        useService = !useService;
-        Log.i(TAG, "Launching the foreground service "+useService);
-        Intent intent = new Intent(context, MainService.class);
-        if (useService) {
-            intent.setAction("start");
+    void toggleService() {
+        if (serviceEnabled) {
+            stopService();
         } else {
-            intent.setAction("stop");
+            startService();
         }
-        context.startForegroundService(intent);
+        serviceEnabled = !serviceEnabled;
+        service.setText(serviceEnabled ? R.string.service_disable : R.string.service_enable);
         SharedPreferences.Editor editor = sharedPrefs.edit();
-        editor.putBoolean("service", useService);
+        editor.putBoolean("service", serviceEnabled);
         editor.apply();
-        service.setText(useService ? R.string.service_disable : R.string.service_enable);
+    }
+
+    void startService() {
+        Log.i(TAG, "Launching the foreground service");
+        Intent intent = new Intent(context, MainService.class);
+        intent.setAction("start");
+        context.startForegroundService(intent);
+    }
+
+    void stopService() {
+        Log.i(TAG, "stopping the foreground service");
+        Intent intent = new Intent(context, MainService.class);
+        intent.setAction("stop");
+        context.startForegroundService(intent);
     }
 
     void readLog() {

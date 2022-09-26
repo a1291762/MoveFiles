@@ -43,14 +43,15 @@ public class MoveFilesWorker
     public Result doWork() {
         Log.i(TAG, "MoveFilesWorker was told to do work...");
         if (!Environment.isExternalStorageManager()) {
+            Log.w(TAG, "The app isn't an external storage manager anymore?!");
             return Result.failure();
         }
 
         // work is run even when the phone is rebooted or the app is upgraded
         // if a service was supposed to be running, restart it now
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        boolean useService = sharedPrefs.getBoolean("service", false);
-        if (useService) {
+        boolean serviceEnabled = sharedPrefs.getBoolean("service", false);
+        if (serviceEnabled) {
             Intent intent = new Intent(context, MainService.class);
             intent.setAction("start");
             context.startForegroundService(intent);
