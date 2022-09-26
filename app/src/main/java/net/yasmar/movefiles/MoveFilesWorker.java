@@ -5,7 +5,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.util.Log;
+
+import java.io.File;
 
 import androidx.annotation.NonNull;
 import androidx.work.Worker;
@@ -24,6 +25,13 @@ public class MoveFilesWorker
             @NonNull WorkerParameters workerParameters) {
         super(context, workerParameters);
         this.context = context;
+
+        // Log to the app's files folder on /sdcard
+        File externalFiles = context.getExternalFilesDir(null);
+        if (externalFiles != null) {
+            Log.dataDir = externalFiles.toString();
+            Log.LOG_TO_FILE = true;
+        }
 
         Log.i(TAG, "MoveFilesWorker is getting created");
 

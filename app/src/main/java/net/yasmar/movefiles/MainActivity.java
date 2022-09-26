@@ -8,15 +8,22 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.FileObserver;
 import android.preference.PreferenceManager;
-import android.util.Log;
+import android.text.Layout;
+import android.text.method.ScrollingMovementMethod;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import androidx.annotation.Nullable;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkInfo;
@@ -38,6 +45,7 @@ public class MainActivity extends Activity {
     Button destination;
     Button enable;
     Button service;
+    TextView logView;
 
     private SharedPreferences sharedPrefs;
     private boolean mEnabled;
@@ -46,12 +54,20 @@ public class MainActivity extends Activity {
     ContentResolver contentResolver;
     WorkManager workManager;
     MoveFilesImpl impl;
+    FileObserver fileObserver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         context = this;
+        // Log to the app's files folder on /sdcard
+        File externalFiles = context.getExternalFilesDir(null);
+        if (externalFiles != null) {
+            Log.dataDir = externalFiles.toString();
+            Log.LOG_TO_FILE = true;
+        }
+
         contentResolver = context.getContentResolver();
         workManager = WorkManager.getInstance(context);
         impl = new MoveFilesImpl(context);
@@ -105,11 +121,28 @@ public class MainActivity extends Activity {
         service = findViewById(R.id.service);
         service.setText(useService ? R.string.service_disable : R.string.service_enable);
         service.setOnClickListener((view) -> launchService());
+
+        logView = findViewById(R.id.log);
+        logView.setMovementMethod(new ScrollingMovementMethod());
+
+        // Read the log when the layout is done (so we can reliably scroll to the end)
+        LinearLayout layout = findViewById(R.id.layout);
+        layout.getViewTreeObserver().addOnGlobalLayoutListener(this::readLog);
+
+        // Read the log when it changes (so we can observe events as they happen)
+        fileObserver = new FileObserver(Log.logFile, FileObserver.MODIFY) {
+            @Override
+            public void onEvent(int i, @Nullable String s) {
+                readLog();
+            }
+        };
+        fileObserver.startWatching();
     }
 
     @Override
     protected void onDestroy() {
         Log.i(TAG, "activity is being destroyed");
+        fileObserver.stopWatching();
         super.onDestroy();
     }
 
@@ -246,5 +279,26 @@ public class MainActivity extends Activity {
         editor.putBoolean("service", useService);
         editor.apply();
         service.setText(useService ? R.string.service_disable : R.string.service_enable);
+    }
+
+    void readLog() {
+        try {
+            byte[] bytes = impl.readFile(Log.logFile.getPath());
+            logView.setText(new String(bytes));
+
+            Layout layout = logView.getLayout();
+            if (layout != null) {
+                final int scrollAmount = layout.getLineTop(logView.getLineCount()) - logView.getHeight();
+                // if there is no need to scroll, scrollAmount will be <=0
+                if (scrollAmount > 0) {
+                    logView.scrollTo(0, scrollAmount);
+                } else {
+                    logView.scrollTo(0, 0);
+                }
+            }
+
+        } catch (IOException e) {
+            // oh well
+        }
     }
 }

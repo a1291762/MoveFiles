@@ -11,7 +11,6 @@ import android.content.SharedPreferences;
 import android.os.FileObserver;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 import java.io.File;
 
@@ -33,8 +32,16 @@ public class MainService
     public void onCreate() {
         super.onCreate();
 
-        Log.i(TAG, "creating service");
         context = getBaseContext();
+        // Log to the app's files folder on /sdcard
+        File externalFiles = context.getExternalFilesDir(null);
+        if (externalFiles != null) {
+            Log.dataDir = externalFiles.toString();
+            Log.LOG_TO_FILE = true;
+        }
+
+        Log.i(TAG, "creating service");
+
         notificationManager = (NotificationManager)context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (notificationManager == null) {
             throw new NullPointerException("notificationManager");

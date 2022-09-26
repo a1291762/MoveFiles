@@ -1,3 +1,9 @@
+* Don't try to copy directories!
+* Beef up checks when moving files.
+* Write out a log that the app can read (and display it in the app).
+
+1.5 (5)
+
 * Allow running a persistent, foreground service to monitor for files in real-time.
 
 1.0 (4)
@@ -5,7 +11,3 @@
 * Show help text before prompting for permissions.
 * Handle coming back from granting permissions.
 * Handle SD cards correctly.
-
-1.0 (1)
-
-This is the first release!

@@ -2,7 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:id="@+id/layout">
 
     <TextView
         android:id="@+id/tv1"
@@ -22,7 +23,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/dest_help"
-        android:labelFor="@+id/dest"  />
+        android:labelFor="@+id/dest" />
 
     <Button
         android:id="@+id/dest"
@@ -35,7 +36,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/enable_help"
-        android:labelFor="@+id/enable"  />
+        android:labelFor="@+id/enable" />
 
     <Button
         android:id="@+id/enable"
@@ -48,12 +49,31 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/service_help"
-        android:labelFor="@+id/service"  />
+        android:labelFor="@+id/service" />
 
     <Button
         android:id="@+id/service"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/service_enable" />
+
+    <TextView
+        android:id="@+id/tv5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6sp"
+        android:text="@string/log_help"
+        android:labelFor="@+id/log" />
+
+    <TextView
+        android:id="@+id/log"
+        android:layout_width="match_parent"
+        android:layout_height="0px"
+        android:layout_weight="1"
+        android:enabled="true"
+        android:scrollbars="vertical"
+        android:text=""
+        android:textAppearance="@android:style/TextAppearance.Material.Small"
+        android:textSize="10sp" />
 
 </LinearLayout>
