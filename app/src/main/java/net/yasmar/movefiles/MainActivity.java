@@ -274,7 +274,7 @@ public class MainActivity extends Activity {
         } else {
             intent.setAction("stop");
         }
-        context.startService(intent);
+        context.startForegroundService(intent);
         SharedPreferences.Editor editor = sharedPrefs.edit();
         editor.putBoolean("service", useService);
         editor.apply();
