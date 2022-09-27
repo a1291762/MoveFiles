@@ -22,26 +22,35 @@ public class MoveFilesImpl {
         contentResolver = context.getContentResolver();
     }
 
+    byte[] buffer = new byte[1000000];
     void moveFiles(String sourceFolder, String destFolder) {
         filesForFolder(sourceFolder, (filename) -> {
-            String sourcePath = sourceFolder + "/" + filename;
-            String destPath = destFolder + "/" + filename;
-            Log.i(TAG, "move from "+sourcePath+" to "+destPath);
+            File sourceFile = new File(sourceFolder + "/" + filename);
+            File destFile = new File(destFolder + "/" + filename);
+            Log.i(TAG, "move from "+sourceFile+" to "+destFile);
             try {
-                byte[] data = readFile(sourcePath);
-                if (data == null) {
-                    Log.w(TAG, "Failed to read source file?!");
-                    return;
+                InputStream is = new FileInputStream(sourceFile);
+                int available = is.available();
+                OutputStream os = new FileOutputStream(destFile);
+                while (available > 0) {
+                    int got = is.read(buffer);
+                    os.write(buffer, 0, got);
+                    available -= got;
                 }
-                writeFile(destPath, data);
+                is.close();
+                os.close();
+
                 // hopefully the above throws an exception so we don't remove
                 // the original file if we have failed to write the copy!
-                boolean did = new File(sourcePath).delete();
+                boolean did = sourceFile.delete();
                 if (!did) {
                     Log.w(TAG, "Failed to remove source file?!");
                 }
             } catch (IOException e) {
                 Log.w(TAG, "Failed to move the file?!", e);
+                // try to remove the partially-written destination file, but don't worry if we fail
+                //noinspection ResultOfMethodCallIgnored
+                destFile.delete();
             }
         });
     }
@@ -62,24 +71,6 @@ public class MoveFilesImpl {
                 callback.run(p);
             }
         }
-    }
-
-    byte[] readFile(String path) throws IOException {
-        InputStream is = new FileInputStream(path);
-        int available = is.available();
-        byte[] buffer = new byte[available];
-        int got = is.read(buffer);
-        if (got != available) {
-            return null;
-        }
-        is.close();
-        return buffer;
-    }
-
-    void writeFile(String path, byte[] data) throws IOException {
-        OutputStream os = new FileOutputStream(path);
-        os.write(data);
-        os.close();
     }
 
 }
