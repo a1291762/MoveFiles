@@ -16,17 +16,13 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.google.common.util.concurrent.ListenableFuture;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.Nullable;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.PeriodicWorkRequest;
-import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
 import static android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION;
@@ -138,22 +134,6 @@ public class MainActivity extends Activity {
         Log.i(TAG, "activity is being destroyed");
         fileObserver.stopWatching();
         super.onDestroy();
-    }
-
-    boolean isWorkScheduled(String tag) {
-        ListenableFuture<List<WorkInfo>> statuses = workManager.getWorkInfosByTag(tag);
-        try {
-            List<WorkInfo> workInfoList = statuses.get();
-            for (WorkInfo workInfo : workInfoList) {
-                WorkInfo.State state = workInfo.getState();
-                if (state == WorkInfo.State.RUNNING | state == WorkInfo.State.ENQUEUED) {
-                    return true;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
     }
 
     @Override
