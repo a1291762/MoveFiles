@@ -35,7 +35,7 @@ public class MoveFilesWorker
 
         //Log.i(TAG, "MoveFilesWorker is getting created");
 
-        impl = new MoveFilesImpl(context);
+        impl = MoveFilesImpl.getInstance();
     }
 
     @NonNull

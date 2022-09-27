@@ -72,7 +72,7 @@ public class MainActivity extends Activity {
 
         contentResolver = context.getContentResolver();
         workManager = WorkManager.getInstance(context);
-        impl = new MoveFilesImpl(context);
+        impl = MoveFilesImpl.getInstance();
 
         boolean isManager = Environment.isExternalStorageManager();
         if (isManager) {

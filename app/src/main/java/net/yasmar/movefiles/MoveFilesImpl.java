@@ -1,8 +1,5 @@
 package net.yasmar.movefiles;
 
-import android.content.ContentResolver;
-import android.content.Context;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -14,20 +11,23 @@ public class MoveFilesImpl {
 
     private static final String TAG = "MoveFilesImpl";
 
-    Context context;
-    ContentResolver contentResolver;
-
-    MoveFilesImpl(Context context) {
-        this.context = context;
-        contentResolver = context.getContentResolver();
+    private MoveFilesImpl() {
     }
 
-    void moveFiles(File sourceFolder, File destFolder) {
+    private static MoveFilesImpl instance;
+    static MoveFilesImpl getInstance() {
+        if (instance == null) {
+            instance = new MoveFilesImpl();
+        }
+        return instance;
+    }
+
+    synchronized void moveFiles(File sourceFolder, File destFolder) {
         filesForFolder(sourceFolder, (filename) -> moveFile(sourceFolder, destFolder, filename));
     }
 
     byte[] buffer = new byte[1000000];
-    void moveFile(File sourceFolder, File destFolder, String filename) {
+    synchronized void moveFile(File sourceFolder, File destFolder, String filename) {
         File sourceFile = new File(sourceFolder + "/" + filename);
         if (!sourceFile.isFile() || filename.startsWith(".")) {
             return;

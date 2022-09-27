@@ -47,7 +47,7 @@ public class MainService
         if (notificationManager == null) {
             throw new NullPointerException("notificationManager");
         }
-        impl = new MoveFilesImpl(context);
+        impl = MoveFilesImpl.getInstance();
 
         createNotificationChannels();
     }
