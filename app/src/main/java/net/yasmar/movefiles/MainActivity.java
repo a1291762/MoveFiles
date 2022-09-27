@@ -162,7 +162,7 @@ public class MainActivity extends Activity {
             startWork();
         }
         if (serviceEnabled) {
-            startService();
+            startService(true);
         }
 
         Log.i(TAG, "resuming the UI");
@@ -257,7 +257,7 @@ public class MainActivity extends Activity {
         if (serviceEnabled) {
             stopService();
         } else {
-            startService();
+            startService(false);
         }
         serviceEnabled = !serviceEnabled;
         service.setText(serviceEnabled ? R.string.service_disable : R.string.service_enable);
@@ -266,10 +266,12 @@ public class MainActivity extends Activity {
         editor.apply();
     }
 
-    void startService() {
-        Log.i(TAG, "Launching the foreground service");
+    void startService(boolean restart) {
+        if (!restart) {
+            Log.i(TAG, "Launching the foreground service");
+        }
         Intent intent = new Intent(context, MainService.class);
-        intent.setAction("start");
+        intent.setAction(restart ? "restart" : "start");
         context.startForegroundService(intent);
     }
 

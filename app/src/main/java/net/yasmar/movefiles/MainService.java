@@ -25,6 +25,7 @@ public class MainService
     NotificationManager notificationManager;
     MoveFilesImpl impl;
     FileObserver fileObserver;
+    boolean running = false;
 
     public static final String PERSISTENT_CHANNEL = "persistent.1";
 
@@ -59,6 +60,7 @@ public class MainService
     @Override
     public void onDestroy() {
         Log.i(TAG, "service is being destroyed");
+        running = false;
         if (fileObserver != null) {
             fileObserver.stopWatching();
         }
@@ -68,23 +70,38 @@ public class MainService
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if ("start".equals(intent.getAction())) {
-            Notification notification = buildNotification();
-            startForeground(1, notification);
-            Log.i(TAG, "called startForeground");
-
-            if (fileObserver != null) {
-                fileObserver.stopWatching();
-                fileObserver = null;
-            }
-            startFileObserver();
+            start();
         } else if ("stop".equals(intent.getAction())) {
-            stopForeground(true);
-            stopSelf();
+            stop();
+        } else if ("restart".equals(intent.getAction())) {
+            if (!running) {
+                // the service wasn't actually running?!
+                start();
+            }
         }
         return START_NOT_STICKY;
     }
 
-    public void createNotificationChannels() {
+    void start() {
+        Log.i(TAG, "started background service");
+        Notification notification = buildNotification();
+        startForeground(1, notification);
+
+        if (fileObserver != null) {
+            fileObserver.stopWatching();
+            fileObserver = null;
+        }
+        startFileObserver();
+        running = true;
+    }
+
+    void stop() {
+        running = false;
+        stopForeground(true);
+        stopSelf();
+    }
+
+    void createNotificationChannels() {
         String channelId = PERSISTENT_CHANNEL;
         if (notificationManager.getNotificationChannel(channelId) == null) {
             CharSequence name = "Persistent Notification";
@@ -119,8 +136,7 @@ public class MainService
         String destPath = sharedPrefs.getString("destFolder", null);
         if (sourcePath == null || destPath == null) {
             Log.w(TAG, "Can't start the foreground service because the folders aren't set!");
-            stopForeground(true);
-            stopSelf();
+            stop();
             return;
         }
 

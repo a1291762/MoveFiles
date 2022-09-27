@@ -63,7 +63,7 @@ public class MoveFilesWorker
         boolean serviceEnabled = sharedPrefs.getBoolean("service", false);
         if (serviceEnabled) {
             Intent intent = new Intent(context, MainService.class);
-            intent.setAction("start");
+            intent.setAction("restart");
             context.startForegroundService(intent);
         }
 
