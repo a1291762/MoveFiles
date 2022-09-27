@@ -125,17 +125,22 @@ public class MainService
         }
 
         File file = new File(sourceFolder);
-        fileObserver = new FileObserver(file, FileObserver.CREATE) {
+        int mask = FileObserver.CLOSE_WRITE | FileObserver.MOVED_TO | FileObserver.MOVE_SELF;
+        fileObserver = new FileObserver(file, mask) {
             @Override
-            public void onEvent(int i, @Nullable String s) {
-                doSomething(sourceFolder, destFolder);
+            public void onEvent(int event, @Nullable String filename) {
+                doSomething(sourceFolder, destFolder, filename);
             }
         };
         fileObserver.startWatching();
     }
 
-    void doSomething(String sourceFolder, String destFolder) {
-        Log.i(TAG, "A file was created! Time to move files...");
-        impl.moveFiles(sourceFolder, destFolder);
+    void doSomething(String sourceFolder, String destFolder, String filename) {
+        File sourceFile = new File(sourceFolder + "/" + filename);
+        if (filename == null || filename.startsWith(".") || !sourceFile.isFile()) {
+            return;
+        }
+        Log.i(TAG, "observed a file to move");
+        impl.moveFile(sourceFolder, destFolder, filename);
     }
 }

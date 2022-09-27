@@ -22,37 +22,39 @@ public class MoveFilesImpl {
         contentResolver = context.getContentResolver();
     }
 
-    byte[] buffer = new byte[1000000];
     void moveFiles(String sourceFolder, String destFolder) {
-        filesForFolder(sourceFolder, (filename) -> {
-            File sourceFile = new File(sourceFolder + "/" + filename);
-            File destFile = new File(destFolder + "/" + filename);
-            Log.i(TAG, "move from "+sourceFile+" to "+destFile);
-            try {
-                InputStream is = new FileInputStream(sourceFile);
-                int available = is.available();
-                OutputStream os = new FileOutputStream(destFile);
-                while (available > 0) {
-                    int got = is.read(buffer);
-                    os.write(buffer, 0, got);
-                    available -= got;
-                }
-                is.close();
-                os.close();
+        filesForFolder(sourceFolder, (filename) -> moveFile(sourceFolder, destFolder, filename));
+    }
 
-                // hopefully the above throws an exception so we don't remove
-                // the original file if we have failed to write the copy!
-                boolean did = sourceFile.delete();
-                if (!did) {
-                    Log.w(TAG, "Failed to remove source file?!");
-                }
-            } catch (IOException e) {
-                Log.w(TAG, "Failed to move the file?!", e);
-                // try to remove the partially-written destination file, but don't worry if we fail
-                //noinspection ResultOfMethodCallIgnored
-                destFile.delete();
+    byte[] buffer = new byte[1000000];
+    void moveFile(String sourceFolder, String destFolder, String filename) {
+        File sourceFile = new File(sourceFolder + "/" + filename);
+        File destFile = new File(destFolder + "/" + filename);
+        Log.i(TAG, "move from "+sourceFile+" to "+destFile);
+        try {
+            InputStream is = new FileInputStream(sourceFile);
+            int available = is.available();
+            OutputStream os = new FileOutputStream(destFile);
+            while (available > 0) {
+                int got = is.read(buffer);
+                os.write(buffer, 0, got);
+                available -= got;
             }
-        });
+            is.close();
+            os.close();
+
+            // hopefully the above throws an exception so we don't remove
+            // the original file if we have failed to write the copy!
+            boolean did = sourceFile.delete();
+            if (!did) {
+                Log.w(TAG, "Failed to remove source file?!");
+            }
+        } catch (IOException e) {
+            Log.w(TAG, "Failed to move the file?!", e);
+            // try to remove the partially-written destination file, but don't worry if we fail
+            //noinspection ResultOfMethodCallIgnored
+            destFile.delete();
+        }
     }
 
     interface FilesForFolderCallback {
