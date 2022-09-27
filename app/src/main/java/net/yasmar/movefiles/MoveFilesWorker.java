@@ -33,7 +33,7 @@ public class MoveFilesWorker
             Log.LOG_TO_FILE = true;
         }
 
-        Log.i(TAG, "MoveFilesWorker is getting created");
+        //Log.i(TAG, "MoveFilesWorker is getting created");
 
         impl = new MoveFilesImpl(context);
     }
