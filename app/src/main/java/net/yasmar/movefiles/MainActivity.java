@@ -156,6 +156,8 @@ public class MainActivity extends Activity {
             return;
         }
 
+        Log.i(TAG, "resuming the UI");
+
         // In the event that the work or service stops unexpectedly, launching
         // the app will cause them to restart due to this logic.
         if (workEnabled) {
@@ -165,12 +167,12 @@ public class MainActivity extends Activity {
             startService(true);
         }
 
-        Log.i(TAG, "resuming the UI");
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        Log.i(TAG, "pausing the UI");
     }
 
     void selectSource() {
