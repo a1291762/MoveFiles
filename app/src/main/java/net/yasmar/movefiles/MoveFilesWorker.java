@@ -47,20 +47,25 @@ public class MoveFilesWorker
             return Result.failure();
         }
 
+        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+
+        // the service only watches for changes, so we still need to actually move files now
+        String sourcePath = sharedPrefs.getString("sourceFolder", null);
+        String destPath = sharedPrefs.getString("destFolder", null);
+        if (sourcePath != null && destPath != null) {
+            File sourceFolder = new File(sourcePath);
+            File destFolder = new File(destPath);
+            impl.moveFiles(sourceFolder, destFolder);
+        }
+
         // work is run even when the phone is rebooted or the app is upgraded
         // if a service was supposed to be running, restart it now
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         boolean serviceEnabled = sharedPrefs.getBoolean("service", false);
         if (serviceEnabled) {
             Intent intent = new Intent(context, MainService.class);
             intent.setAction("start");
             context.startForegroundService(intent);
         }
-
-        // the service only watches for changes, so we still need to actually move files now
-        String sourceFolder = sharedPrefs.getString("sourceFolder", null);
-        String destFolder = sharedPrefs.getString("destFolder", null);
-        impl.moveFiles(sourceFolder, destFolder);
 
         return Result.success();
     }

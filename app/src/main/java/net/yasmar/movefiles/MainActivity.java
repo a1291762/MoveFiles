@@ -93,19 +93,19 @@ public class MainActivity extends Activity {
 
         sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
         workEnabled = sharedPrefs.getBoolean("enabled", false);
-        String sourceFolder = sharedPrefs.getString("sourceFolder", null);
-        String destFolder = sharedPrefs.getString("destFolder", null);
+        String sourcePath = sharedPrefs.getString("sourceFolder", null);
+        String destPath = sharedPrefs.getString("destFolder", null);
         serviceEnabled = sharedPrefs.getBoolean("service", false);
 
         source = findViewById(R.id.source);
-        if (sourceFolder != null) {
-            source.setText(sourceFolder);
+        if (sourcePath != null) {
+            source.setText(sourcePath);
         }
         source.setOnClickListener((view) -> selectSource());
 
         destination = findViewById(R.id.dest);
-        if (destFolder != null) {
-            destination.setText(destFolder);
+        if (destPath != null) {
+            destination.setText(destPath);
         }
         destination.setOnClickListener((view) -> selectDestination());
 

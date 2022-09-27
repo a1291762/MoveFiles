@@ -115,18 +115,19 @@ public class MainService
 
     void startFileObserver() {
         SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-        String sourceFolder = sharedPrefs.getString("sourceFolder", null);
-        String destFolder = sharedPrefs.getString("destFolder", null);
-        if (sourceFolder == null || destFolder == null) {
+        String sourcePath = sharedPrefs.getString("sourceFolder", null);
+        String destPath = sharedPrefs.getString("destFolder", null);
+        if (sourcePath == null || destPath == null) {
             Log.w(TAG, "Can't start the foreground service because the folders aren't set!");
             stopForeground(true);
             stopSelf();
             return;
         }
 
-        File file = new File(sourceFolder);
+        File sourceFolder = new File(sourcePath);
+        File destFolder = new File(destPath);
         int mask = FileObserver.CLOSE_WRITE | FileObserver.MOVED_TO | FileObserver.MOVE_SELF;
-        fileObserver = new FileObserver(file, mask) {
+        fileObserver = new FileObserver(sourceFolder, mask) {
             @Override
             public void onEvent(int event, @Nullable String filename) {
                 doSomething(sourceFolder, destFolder, filename);
@@ -135,7 +136,7 @@ public class MainService
         fileObserver.startWatching();
     }
 
-    void doSomething(String sourceFolder, String destFolder, String filename) {
+    void doSomething(File sourceFolder, File destFolder, String filename) {
         File sourceFile = new File(sourceFolder + "/" + filename);
         if (filename == null || filename.startsWith(".") || !sourceFile.isFile()) {
             return;

@@ -22,13 +22,16 @@ public class MoveFilesImpl {
         contentResolver = context.getContentResolver();
     }
 
-    void moveFiles(String sourceFolder, String destFolder) {
+    void moveFiles(File sourceFolder, File destFolder) {
         filesForFolder(sourceFolder, (filename) -> moveFile(sourceFolder, destFolder, filename));
     }
 
     byte[] buffer = new byte[1000000];
-    void moveFile(String sourceFolder, String destFolder, String filename) {
+    void moveFile(File sourceFolder, File destFolder, String filename) {
         File sourceFile = new File(sourceFolder + "/" + filename);
+        if (!sourceFile.isFile() || filename.startsWith(".")) {
+            return;
+        }
         File destFile = new File(destFolder + "/" + filename);
         Log.i(TAG, "move from "+sourceFile+" to "+destFile);
         try {
@@ -63,15 +66,12 @@ public class MoveFilesImpl {
 
     // Returns the files (documentUri) for a folder.
     // Does not recurse
-    void filesForFolder(String path, FilesForFolderCallback callback) {
-        File file = new File(path);
-        assert(file.isDirectory());
-        String[] list = file.list();
+    void filesForFolder(File sourceFolder, FilesForFolderCallback callback) {
+        assert(sourceFolder.isDirectory());
+        String[] list = sourceFolder.list();
         assert(list != null);
         for (String p: list) {
-            if (new File(path+"/"+p).isFile()) {
-                callback.run(p);
-            }
+            callback.run(p);
         }
     }
 
