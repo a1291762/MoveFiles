@@ -1,5 +1,6 @@
 package net.yasmar.movefiles;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -17,7 +18,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.concurrent.TimeUnit;
 
 import androidx.annotation.Nullable;
@@ -120,7 +125,7 @@ public class MainActivity extends Activity {
         layout.getViewTreeObserver().addOnGlobalLayoutListener(this::readLog);
 
         // Read the log when it changes (so we can observe events as they happen)
-        fileObserver = new FileObserver(Log.logFile, FileObserver.MODIFY) {
+        fileObserver = new FileObserver(Log.logFile, FileObserver.CLOSE_WRITE) {
             @Override
             public void onEvent(int i, @Nullable String s) {
                 readLog();
@@ -275,15 +280,27 @@ public class MainActivity extends Activity {
         context.startForegroundService(intent);
     }
 
+    byte[] buffer = new byte[1000000];
+    @SuppressLint("SetTextI18n")
     void readLog() {
         try {
-            byte[] bytes = impl.readFile(Log.logFile.getPath());
-            logView.setText(new String(bytes));
+            InputStream is = new FileInputStream(Log.logFile);
+            int available = is.available();
+            // If the log happens to be super long, only read the last 1M of it
+            if (available > 1000000) {
+                //noinspection ResultOfMethodCallIgnored
+                is.skip(available - 1000000);
+            }
+            int got = is.read(buffer);
+            is.close();
+
+            logView.setText(new String(buffer, 0, got));
 
             Layout layout = logView.getLayout();
             if (layout != null) {
                 final int scrollAmount = layout.getLineTop(logView.getLineCount()) - logView.getHeight();
                 // if there is no need to scroll, scrollAmount will be <=0
+                //noinspection ManualMinMaxCalculation
                 if (scrollAmount > 0) {
                     logView.scrollTo(0, scrollAmount);
                 } else {
@@ -292,7 +309,10 @@ public class MainActivity extends Activity {
             }
 
         } catch (IOException e) {
-            // oh well
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            logView.setText("Exception reading log!\n"+sw);
         }
     }
 }
