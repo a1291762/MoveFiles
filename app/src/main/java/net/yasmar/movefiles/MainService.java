@@ -9,7 +9,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.FileObserver;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 
 import java.io.File;
@@ -26,6 +28,7 @@ public class MainService
     MoveFilesImpl impl;
     FileObserver fileObserver;
     boolean running = false;
+    Handler handler;
 
     public static final String PERSISTENT_CHANNEL = "persistent.1";
 
@@ -50,6 +53,8 @@ public class MainService
         impl = MoveFilesImpl.getInstance();
 
         createNotificationChannels();
+
+        handler = new Handler(Looper.getMainLooper());
     }
 
     @Override
@@ -142,22 +147,37 @@ public class MainService
 
         File sourceFolder = new File(sourcePath);
         File destFolder = new File(destPath);
-        int mask = FileObserver.CLOSE_WRITE | FileObserver.MOVED_TO | FileObserver.MOVE_SELF;
+        int mask = FileObserver.CLOSE_WRITE | FileObserver.MOVED_TO | FileObserver.MOVE_SELF | FileObserver.CREATE;
         fileObserver = new FileObserver(sourceFolder, mask) {
             @Override
             public void onEvent(int event, @Nullable String filename) {
-                doSomething(sourceFolder, destFolder, filename);
+                moveLater(sourceFolder, destFolder, filename);
             }
         };
         fileObserver.startWatching();
     }
 
-    void doSomething(File sourceFolder, File destFolder, String filename) {
+    void moveLater(File sourceFolder, File destFolder, String filename) {
         File sourceFile = new File(sourceFolder + "/" + filename);
         if (filename == null || filename.startsWith(".") || !sourceFile.isFile()) {
             return;
         }
-        Log.i(TAG, "observed a file to move");
+        Log.i(TAG, "scheduling a move of "+filename+" in 30 seconds");
+        handler.postDelayed(() -> moveNow(sourceFolder, destFolder, filename), 30000);
+    }
+
+    void moveNow(File sourceFolder, File destFolder, String filename) {
+        File sourceFile = new File(sourceFolder + "/" + filename);
+        if (!sourceFile.isFile()) {
+            // it got removed while we were waiting?
+            return;
+        }
+        long now = System.currentTimeMillis();
+        if (sourceFile.lastModified() + 30000 > now) {
+            // too new... try later
+            moveLater(sourceFolder, destFolder, filename);
+            return;
+        }
         impl.moveFile(sourceFolder, destFolder, filename);
     }
 }

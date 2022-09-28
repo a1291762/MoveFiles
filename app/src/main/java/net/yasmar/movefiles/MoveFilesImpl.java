@@ -22,7 +22,7 @@ public class MoveFilesImpl {
         return instance;
     }
 
-    synchronized void moveFiles(File sourceFolder, File destFolder) {
+    void moveFiles(File sourceFolder, File destFolder) {
         filesForFolder(sourceFolder, (filename) -> moveFile(sourceFolder, destFolder, filename));
     }
 
@@ -30,6 +30,12 @@ public class MoveFilesImpl {
     synchronized void moveFile(File sourceFolder, File destFolder, String filename) {
         File sourceFile = new File(sourceFolder + "/" + filename);
         if (!sourceFile.isFile() || filename.startsWith(".")) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        if (sourceFile.lastModified() + 30000 > now) {
+            // don't move files that were touched less than 30 seconds ago
+            Log.i(TAG, "skipping "+sourceFile + " because it was modified less than 30 seconds ago");
             return;
         }
         File destFile = new File(destFolder + "/" + filename);
