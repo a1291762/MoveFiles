@@ -236,8 +236,6 @@ public class MainActivity extends Activity {
 
     void startWork() {
         Log.i(TAG, "Start Work");
-
-        workManager.cancelAllWork();
         PeriodicWorkRequest r = new PeriodicWorkRequest.Builder(
                 MoveFilesWorker.class,
                 15,
@@ -269,9 +267,7 @@ public class MainActivity extends Activity {
     }
 
     void startService(boolean restart) {
-        if (!restart) {
-            Log.i(TAG, "Launching the foreground service");
-        }
+        Log.i(TAG, "Launching the foreground service");
         Intent intent = new Intent(context, MainService.class);
         intent.setAction(restart ? "restart" : "start");
         context.startForegroundService(intent);
