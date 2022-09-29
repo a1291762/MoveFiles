@@ -13,8 +13,11 @@ import android.os.FileObserver;
 import android.preference.PreferenceManager;
 import android.text.Layout;
 import android.text.method.ScrollingMovementMethod;
+import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import java.io.File;
@@ -46,6 +49,8 @@ public class MainActivity extends Activity {
     Button destination;
     Button enable;
     Button service;
+    Switch logging;
+    TextView logLabel;
     TextView logView;
 
     private SharedPreferences sharedPrefs;
@@ -63,12 +68,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         context = this;
-        // Log to the app's files folder on /sdcard
-        File externalFiles = context.getExternalFilesDir(null);
-        if (externalFiles != null) {
-            Log.dataDir = externalFiles.toString();
-            Log.LOG_TO_FILE = true;
-        }
+        Log.init(context);
 
         contentResolver = context.getContentResolver();
         workManager = WorkManager.getInstance(context);
@@ -117,27 +117,29 @@ public class MainActivity extends Activity {
         service.setText(serviceEnabled ? R.string.service_disable : R.string.service_enable);
         service.setOnClickListener((view) -> toggleService());
 
+        logging = findViewById(R.id.logging);
+        logging.setChecked(Log.LOG_TO_FILE);
+        logging.setOnCheckedChangeListener((CompoundButton b, boolean checked) -> setLogging(checked));
+
+        logLabel = findViewById(R.id.logLabel);
         logView = findViewById(R.id.log);
         logView.setMovementMethod(new ScrollingMovementMethod());
 
-        // Read the log when the layout is done (so we can reliably scroll to the end)
-        LinearLayout layout = findViewById(R.id.layout);
-        layout.getViewTreeObserver().addOnGlobalLayoutListener(this::readLog);
+        if (Log.LOG_TO_FILE) {
+            // Read the log when the layout is done (so we can reliably scroll to the end)
+            LinearLayout layout = findViewById(R.id.layout);
+            layout.getViewTreeObserver().addOnGlobalLayoutListener(this::readLog);
+        }
 
-        // Read the log when it changes (so we can observe events as they happen)
-        fileObserver = new FileObserver(Log.logFile, FileObserver.CLOSE_WRITE) {
-            @Override
-            public void onEvent(int i, @Nullable String s) {
-                readLog();
-            }
-        };
-        fileObserver.startWatching();
+        setLogging(Log.LOG_TO_FILE);
     }
 
     @Override
     protected void onDestroy() {
         Log.i(TAG, "activity is being destroyed");
-        fileObserver.stopWatching();
+        if (fileObserver != null) {
+            fileObserver.stopWatching();
+        }
         super.onDestroy();
     }
 
@@ -223,6 +225,12 @@ public class MainActivity extends Activity {
         if (workEnabled) {
             stopWork();
         } else {
+            String sourcePath = sharedPrefs.getString("sourceFolder", null);
+            String destPath = sharedPrefs.getString("destFolder", null);
+            if (sourcePath == null || destPath == null) {
+                Log.w(TAG, "Can't start the background job without setting both source and destination folders!");
+                return;
+            }
             startWork();
         }
         workEnabled = !workEnabled;
@@ -235,7 +243,7 @@ public class MainActivity extends Activity {
     }
 
     void startWork() {
-        Log.i(TAG, "Start Work");
+        Log.i(TAG, "Start background job");
         PeriodicWorkRequest r = new PeriodicWorkRequest.Builder(
                 MoveFilesWorker.class,
                 15,
@@ -249,7 +257,7 @@ public class MainActivity extends Activity {
     }
 
     void stopWork() {
-        Log.i(TAG, "Stop Work");
+        Log.i(TAG, "Stop background job");
         workManager.cancelAllWork();
     }
 
@@ -257,6 +265,12 @@ public class MainActivity extends Activity {
         if (serviceEnabled) {
             stopService();
         } else {
+            String sourcePath = sharedPrefs.getString("sourceFolder", null);
+            String destPath = sharedPrefs.getString("destFolder", null);
+            if (sourcePath == null || destPath == null) {
+                Log.w(TAG, "Can't start the foreground service without setting both source and destination folders!");
+                return;
+            }
             startService(false);
         }
         serviceEnabled = !serviceEnabled;
@@ -267,14 +281,14 @@ public class MainActivity extends Activity {
     }
 
     void startService(boolean restart) {
-        Log.i(TAG, "Launching the foreground service");
+        Log.i(TAG, "Start foreground service");
         Intent intent = new Intent(context, MainService.class);
         intent.setAction(restart ? "restart" : "start");
         context.startForegroundService(intent);
     }
 
     void stopService() {
-        Log.i(TAG, "stopping the foreground service");
+        Log.i(TAG, "Stop foreground service");
         Intent intent = new Intent(context, MainService.class);
         intent.setAction("stop");
         context.startForegroundService(intent);
@@ -314,5 +328,41 @@ public class MainActivity extends Activity {
             e.printStackTrace(pw);
             logView.setText("Exception reading log!\n"+sw);
         }
+    }
+
+    void setLogging(boolean logging) {
+        logLabel.setVisibility(logging ? View.VISIBLE : View.GONE);
+        logView.setVisibility(logging ? View.VISIBLE : View.GONE);
+
+        if (logging == Log.LOG_TO_FILE)
+            return;
+
+        if (!logging) {
+            // delete the file before we lose the reference
+            Log.logFile.delete();
+        }
+
+        SharedPreferences.Editor editor = sharedPrefs.edit();
+        editor.putBoolean("logging", logging);
+        editor.apply();
+        Log.init(context);
+
+        if (logging) {
+            // ensure the log exists
+            Log.i(TAG, "Starting logging");
+            // Read the log when it changes (so we can observe events as they happen)
+            fileObserver = new FileObserver(Log.logFile, FileObserver.CLOSE_WRITE) {
+                @Override
+                public void onEvent(int i, @Nullable String s) {
+                    readLog();
+                }
+            };
+            fileObserver.startWatching();
+            readLog();
+        } else if (fileObserver != null) {
+            fileObserver.stopWatching();
+            fileObserver = null;
+        }
+
     }
 }

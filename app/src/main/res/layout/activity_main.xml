@@ -57,8 +57,14 @@
         android:layout_height="wrap_content"
         android:text="@string/service_enable" />
 
+    <Switch
+        android:id="@+id/logging"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/logging" />
+
     <TextView
-        android:id="@+id/tv5"
+        android:id="@+id/logLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="6sp"

@@ -27,11 +27,7 @@ public class MoveFilesWorker
         this.context = context;
 
         // Log to the app's files folder on /sdcard
-        File externalFiles = context.getExternalFilesDir(null);
-        if (externalFiles != null) {
-            Log.dataDir = externalFiles.toString();
-            Log.LOG_TO_FILE = true;
-        }
+        Log.init(context);
 
         //Log.i(TAG, "MoveFilesWorker is getting created");
 

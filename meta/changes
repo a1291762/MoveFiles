@@ -1,16 +1,13 @@
+* Logging is off by default. Disabling logging removes the log file.
+
+1.0 (8)
+
 * Don't move files if they were modified less than 30 seconds ago.
 
 1.0 (7)
 
 * Fetch only the last 1M of the log file.
 * Copy files in 1M chunks (rather than attempting to read whole files into memory).
-* Avoid racing with the camera (background service).
-* Avoid restarting the background service if it's already running.
-* Avoid racing between the worker and the background service.
-
-1.0 (6)
-
-* Don't try to copy directories!
-* Beef up checks when moving files.
-* Write out a log that the app can read (and display it in the app).
-* Launching/resuming the activity restarts work/service if they have stopped.
+* Avoid racing with the camera (foreground service).
+* Avoid restarting the foreground service if it's already running.
+* Avoid racing between the background job and the foreground service.

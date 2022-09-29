@@ -1,5 +1,8 @@
 package net.yasmar.movefiles;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.text.format.Time;
 
 import java.io.BufferedWriter;
@@ -10,18 +13,23 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 public class Log {
-    public static String dataDir;
     public static File logFile;
     public static boolean LOG_TO_FILE = false;
 
+    static void init(Context context) {
+        File externalFiles = context.getExternalFilesDir(null);
+        if (externalFiles == null) {
+            logFile = null;
+            LOG_TO_FILE = false;
+        } else {
+            logFile = new File(externalFiles  + "/log.txt");
+            SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+            LOG_TO_FILE = sharedPrefs.getBoolean("logging", false);
+        }
+    }
+
     static void logToFile(String msg) {
-        System.out.println("dataDir "+dataDir);
-        if (dataDir == null) return;
         try {
-            if (logFile == null) {
-                String path = dataDir + "/log.txt";
-                logFile = new File(path);
-            }
             if (!logFile.exists())
                 logFile.createNewFile();
             BufferedWriter buf = new BufferedWriter(new FileWriter(logFile, true));

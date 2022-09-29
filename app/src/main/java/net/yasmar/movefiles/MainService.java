@@ -37,12 +37,7 @@ public class MainService
         super.onCreate();
 
         context = getBaseContext();
-        // Log to the app's files folder on /sdcard
-        File externalFiles = context.getExternalFilesDir(null);
-        if (externalFiles != null) {
-            Log.dataDir = externalFiles.toString();
-            Log.LOG_TO_FILE = true;
-        }
+        Log.init(context);
 
         Log.i(TAG, "creating service");
 
@@ -88,7 +83,7 @@ public class MainService
     }
 
     void start() {
-        Log.i(TAG, "started background service");
+        Log.i(TAG, "started foreground service");
         Notification notification = buildNotification();
         startForeground(1, notification);
 
@@ -123,8 +118,8 @@ public class MainService
     Notification buildNotification() {
         Notification.Builder b = new Notification.Builder(context, PERSISTENT_CHANNEL);
         b.setSmallIcon(R.drawable.ic_launcher_foreground);
-        b.setContentTitle("Persistent background service");
-        b.setContentText("This notification is required to be created while the service runs. Tap to hide.");
+        b.setContentTitle("Foreground service");
+        b.setContentText("This notification is required to be created while the foreground service runs. Tap to hide.");
 
         Intent i = new Intent();
         i.setAction("android.settings.APP_NOTIFICATION_SETTINGS");
