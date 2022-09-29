@@ -15,6 +15,7 @@ android {
         versionCode code
         versionName "1.0 ("+code+")"
     }
+    namespace 'net.yasmar.movefiles'
     buildTypes {
         release {
             minifyEnabled false
