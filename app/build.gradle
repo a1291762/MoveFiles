@@ -7,19 +7,32 @@ if(versionPropsFile.exists())
 def code = (versionProps['VERSION_CODE'] ?: "1").toInteger()
 
 android {
-    compileSdkVersion 33
+    namespace 'net.yasmar.movefiles'
+    compileSdk 34
     defaultConfig {
         applicationId "net.yasmar.movefiles"
         minSdkVersion 30
-        targetSdkVersion 33
+        targetSdkVersion 34
         versionCode code
         versionName "1.0 ("+code+")"
     }
-    namespace 'net.yasmar.movefiles'
+
+    def keystoreProperties = new Properties()
+    keystoreProperties.load(new FileInputStream(rootProject.file("keystore.properties")))
+    signingConfigs {
+        release {
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+        }
+    }
+
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 }
