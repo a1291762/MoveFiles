@@ -12,7 +12,6 @@ import android.os.FileObserver;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.preference.PreferenceManager;
 
 import java.io.File;
 
@@ -131,7 +130,7 @@ public class MainService
     }
 
     void startFileObserver() {
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences sharedPrefs = context.getSharedPreferences(context.getPackageName()+"_preferences", Context.MODE_PRIVATE);
         String sourcePath = sharedPrefs.getString("sourceFolder", null);
         String destPath = sharedPrefs.getString("destFolder", null);
         if (sourcePath == null || destPath == null) {

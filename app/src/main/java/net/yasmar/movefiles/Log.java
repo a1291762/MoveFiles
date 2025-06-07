@@ -2,7 +2,6 @@ package net.yasmar.movefiles;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.text.format.Time;
 
 import java.io.BufferedWriter;
@@ -23,7 +22,7 @@ public class Log {
             LOG_TO_FILE = false;
         } else {
             logFile = new File(externalFiles  + "/log.txt");
-            SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+            SharedPreferences sharedPrefs = context.getSharedPreferences(context.getPackageName()+"_preferences", Context.MODE_PRIVATE);
             LOG_TO_FILE = sharedPrefs.getBoolean("logging", false);
         }
     }

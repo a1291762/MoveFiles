@@ -10,7 +10,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.FileObserver;
-import android.preference.PreferenceManager;
 import android.text.Layout;
 import android.text.method.ScrollingMovementMethod;
 import android.view.View;
@@ -20,7 +19,6 @@ import android.widget.LinearLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -91,7 +89,7 @@ public class MainActivity extends Activity {
             return;
         }
 
-        sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        sharedPrefs = context.getSharedPreferences(context.getPackageName()+"_preferences", Context.MODE_PRIVATE);
         workEnabled = sharedPrefs.getBoolean("enabled", false);
         String sourcePath = sharedPrefs.getString("sourceFolder", null);
         String destPath = sharedPrefs.getString("destFolder", null);

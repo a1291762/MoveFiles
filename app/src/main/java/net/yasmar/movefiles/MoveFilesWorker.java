@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Environment;
-import android.preference.PreferenceManager;
 
 import java.io.File;
 
@@ -43,7 +42,7 @@ public class MoveFilesWorker
             return Result.failure();
         }
 
-        SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences sharedPrefs = context.getSharedPreferences(context.getPackageName()+"_preferences", Context.MODE_PRIVATE);
 
         // the service only watches for changes, so we still need to actually move files now
         String sourcePath = sharedPrefs.getString("sourceFolder", null);
