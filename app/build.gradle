@@ -7,12 +7,12 @@ if(versionPropsFile.exists())
 def code = (versionProps['VERSION_CODE'] ?: "1").toInteger()
 
 android {
-    namespace 'net.yasmar.movefiles'
-    compileSdk 34
+    namespace = 'net.yasmar.movefiles'
+    compileSdk = 36
     defaultConfig {
         applicationId "net.yasmar.movefiles"
         minSdkVersion 30
-        targetSdkVersion 34
+        targetSdkVersion 36
         versionCode code
         versionName "1.0 ("+code+")"
     }
@@ -32,7 +32,7 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
+            signingConfig = signingConfigs.release
         }
     }
 }
